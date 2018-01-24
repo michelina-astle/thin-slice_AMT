@@ -35,7 +35,7 @@ def get_credentials():
         Credentials, the obtained credential.
     """
     home_dir = os.path.expanduser('~')
-    credential_dir = os.path.join(home_dir, 'Documents')  ## Change this to be wherever your drive-python-quickstart.json file is.
+    credential_dir = os.path.join(home_dir, 'PycharmProjects/AMT/input')  ## Change this to be wherever your drive-python-quickstart.json file is.
     if not os.path.exists(credential_dir):
         os.makedirs(credential_dir)
     credential_path = os.path.join(credential_dir,
@@ -64,16 +64,19 @@ def main():
     urlList = []
     refList = []
     trainingList = []
-    SLICE_FOLDER_ID = "_____" ## Change this to be the id of the folder you want it to extract files from (from the ID of the folder's URL: "....drive.google.com/drive/.../folders/"_____")
-    TRAINING_FOLDER_ID = "____" ## change q to be the folder ID for the folder they're in: (from the last part of the url... "https://drive.google.com/drive/u/0/folders/0B3RCLUAraC3ueF80MHhwTmRhZjg")
+
     results = service.files().list(
         ## Change the pageSize to be however many results you want it to return.
         ## If you're using the output file "MTurkCSVFile" as input for batches of 10 slices, make sure pageSize is divisible by 10.
-        pageSize=800, q="'SLICE_FOLDER_ID' in parents", fields="nextPageToken, files(id, name)").execute()
+        ## Change the hexadecimal string in q (query) to be the id of the folder you want it to extract files from (from the ID of the folder's URL: "....drive.google.com/drive/.../folders/"1wwDPvyIRDXWin1KSmWQD5AhUC7f8__MT")
+        pageSize=800, q="'1wwDPvyIRDXWin1KSmWQD5AhUC7f8__MT' in parents", fields="nextPageToken, files(id, name)").execute()
 
-        ### This is the 6 (for RAPT) training vidoes, so change pageSize if you have more or less than 6.
+
+
+        ### This is the 6 (for RAPT) training vidoes, so change pageSize if you have more or less than 6
+        ### Change the hexadecmial string in q to be the folder ID for the folder they're in: (from the last part of the url... "https://drive.google.com/drive/u/0/folders/12hs0gnj1V3rNNZR8ynYmxebeWOacoIAa")
     trainingResults = service.files().list(
-        pageSize=6, q="'TRAINING_FOLDER_ID' in parents", fields="nextPageToken, files(id, name)").execute()
+        pageSize=6, q="'12hs0gnj1V3rNNZR8ynYmxebeWOacoIAa' in parents", fields="nextPageToken, files(id, name)").execute()
 
 
     items = results.get('files', [])
@@ -86,6 +89,7 @@ def main():
             item['src'] = "https://drive.google.com/file/d/{0}/preview".format(item["id"])
             src = item['src']
             title = item['name']
+            print(title)
 
             # add to list
             urlList.append((title,src))
@@ -110,20 +114,20 @@ def main():
 
     try:
         assert(len(urlList) == len(refList))
-        assert(len(trainingList) == 6)
+        assert(len(trainingList) == 5)
     except:
         print("Hmm something went wrong. Check the input")
 
     random.shuffle(urlList) # randomize list
 
     title = 'src'
-    titles = [title + str(num) for num in range(1, 17)]
+    titles = [title + str(num) for num in range(1, 16)]
  #   print(urlList)
 
 
 
     # write to file - data for MTurk
-    with open("MTurkCSVFile_batch5.csv", "wb") as csvFile:   ## Change batch# for every batch
+    with open("MTurkCSVFile_WoZ_test1.csv", "wb") as csvFile:   ## Change batch# for every batch
         csvwriter = csv.writer(csvFile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         csvwriter.writerow(titles)
         num = 1
@@ -160,8 +164,8 @@ def main():
 
 
     # write reference file to match MTurk data to video num later
-    csvFile = open("VideoNameRef_batch5.csv", "w") ### Change "batch#" for each batch
-    csvFile.write('Dyad#' + ',' + 'Session#' + ',' + 'Slice#' + ',' + 'title' + ',' + 'src' + "," + "UsageType")
+    csvFile = open("VideoNameRef_WoZ_test1.csv", "w") ### Change "batch#" for each batch
+    csvFile.write('Participant#' + 'Slice#' + ',' + 'title' + ',' + 'src' + "," + "UsageType")
     csvFile.write('\n')
     for title,src in refList:
         if any(src in s for s in extra):
@@ -170,30 +174,18 @@ def main():
         else:
             usageType = "U"
         for i in range(len(title)):
-            if title[i] == "D":
-                dyad = title[i+1:]
-                dyad = dyad.split("_", 1)[0]
-               # print(dyad)
+            if title[i] == "P":  ## Find the participant ID (e.g. "P1_Slice_16.csv")
+                participantID = title[i+1:]
+                participantID = participantID.split("_", 1)[0]
+                print(participantID)
 
-                if title[i+2] == "_":
-                    session = title[i+4]
-                   #print(title[i+11])
-                    if title[i+11] == "S":
-                        slice = title[i+16:]
-                    else:
-                        slice = title[i+11:]
-                    sep = '.'
-                    slice = slice.split(sep, 1)[0]
+                if title[i+3] == "S":
+                    slice = title[i+9:]
                 else:
-                    print(title)
-                    session = title[i+5]
-                    if title[i+12] == "S":
-                        slice = title[i+17:]
-                    else:
-                        slice = title[i+12:]
-                    sep = '.'
-                    slice = slice.split(sep, 1)[0]
-        csvFile.write(dyad + ',' + session + ',' + slice + ',' + title + ',' + src + "," + usageType)
+                    slice = title[i+10:]
+                sep = '.'
+                slice = slice.split(sep, 1)[0]
+        csvFile.write(participantID + ',' + slice + ',' + title + ',' + src + "," + usageType)
         csvFile.write('\n')
 
 
@@ -201,29 +193,18 @@ def main():
     for title,src in trainingList:
         usageType = "T"
         for i in range(len(title)):
-            if title[i] == "D":   ## If your file is named something different than "D#_S#_Both_Slice#" then this may need to change. This is a little clunky anyway.
-                dyad = title[i+1:]
-                dyad = dyad.split("_", 1)[0]
-               # print(dyad)
-                if title[i+2] == "_":
-                    session = title[i+4]
-                   #print(title[i+11])
-                    if title[i+11] == "S":
-                        slice = title[i+16:]
-                    else:
-                        slice = title[i+11:]
-                    sep = '.'
-                    slice = slice.split(sep, 1)[0]
+            if title[i] == "P":
+                participantID = title[i+1:]
+                participantID = participantID.split("_", 1)[0]
+                print(participantID)
+
+                if title[i+3] == "S":
+                    slice = title[i+9:]
                 else:
-                 #   print(title[i+5])
-                    session = title[i+5]
-                    if title[i+12] == "S":
-                        slice = title[i+17:]
-                    else:
-                        slice = title[i+12:]
-                    sep = '.'
-                    slice = slice.split(sep, 1)[0]
-        csvFile.write(dyad + ',' + session + ',' + slice + ',' + title + ',' + src + "," + usageType)
+                    slice = title[i+10:]
+                sep = '.'
+                slice = slice.split(sep, 1)[0]
+        csvFile.write(participantID + ',' + slice + ',' + title + ',' + src + "," + usageType)
         csvFile.write('\n')
 
 

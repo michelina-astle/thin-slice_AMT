@@ -5,6 +5,8 @@ import math
 from collections import defaultdict
 import glob, os
 
+batchNum = "batch5"    ## Change this to "test1" or "batch1" depending on what your files or folders are labeled as
+
 
 def list_of_indices(a, item):
     b = []
@@ -34,11 +36,13 @@ def hiits(filename):
 
 
 
-os.chdir("batch5/")  ## Change this to be whichevr batch you're on
+os.chdir("2016_Study/{0}/".format(batchNum))  ## Change this folder name to whatever subdirectory your "VideoNameRef_*.csv" and AMT output file e.g. "Batch_2659126_batch_results" are in
 for file in glob.glob("*.csv"):
     if file.endswith("results.csv"):
         print(file)
         hiits = hiits(file)
+    else:
+        print("Make sure your AMT output file ends with 'results.csv'")
 
 def format_csv(hiits):
     csvs = []
@@ -54,7 +58,7 @@ def format_csv(hiits):
             print row[15]
         num_raters.append(len(workers))
         title += workers
-        for num1 in range(33, 43):  ## change column indices of src links here -- CHANGE THIS IF NECESSARY
+        for num1 in range(33, 43):  ## change column indices of src links to those of the 10 video files being rated here -- CHANGE THIS IF NECESSARY
             print num1
             print values[0][num1]
             slice_src = values[0][num1]
@@ -298,7 +302,7 @@ def expand_hiits(hiits):
    # print hiit_to_workers_dict
     print "num old hits"
     print "herere"
-    new_hiits = order_hiits(hiits, "VideoNameRef_batch5.csv")
+    new_hiits = order_hiits(hiits, "VideoNameRef_{0}.csv".format(batchNum))
     workers = set([])
     final = []
     for x in hiit_to_workers_dict:
@@ -342,7 +346,7 @@ final_output = expand_hiits(hiits)
 # for row in final_output:
 #      print row
 
-convert_to_csv(final_output, "Batch5_results_formatted.csv")  ## Change if you want a different output file name
+convert_to_csv(final_output, "{0}_results_formatted.csv".format(batchNum))  ## Change if you want a different output file name
 
 
 
@@ -368,4 +372,4 @@ for num in range(len(output)):
         hiits = hiit
     else:
         hiits += hiit
-    convert_to_csv2(hiit, "R_output/irr" + str(num + 1) + ".csv")  ## Make sure you have a folder called "R_output
+    convert_to_csv2(hiit, "R_output_{0}/irr".format(batchNum) + str(num + 1) + ".csv")  ## Make sure you have a folder called "R_output_* (whatever you defined batchNum as above). If not, create it.
