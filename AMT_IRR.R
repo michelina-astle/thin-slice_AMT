@@ -1,3 +1,7 @@
+
+
+#### SETUP: RUN THESE EVERY TIME ####
+
 wants <- c("DescTools", "irr","psych")
 has   <- wants %in% rownames(installed.packages())
 if(any(!has)) install.packages(wants[!has])
@@ -6,12 +10,16 @@ library(irr)
 library(psych)
 library(ICC)
 
+batch = "batch5" ## CHANGE THIS FOR THE END OF YOUR FOLDER NAME (WoZ_test1)
+
+directory = paste("R_output_",batch, sep = "", collapse = NULL)
+print(directory)
 getwd()
-setwd("~/RAPT/R_output_batch5")  ## CHANGE THIS FOR YOUR FOLDER
+setwd(directory)  
 
 
 
-temp = list.files(pattern="*.csv")
+temp = list.files(pattern="irr")
 for (i in 1:length(temp)) assign(temp[i], read.csv(temp[i],header=T))
 
 df.list <- list()
@@ -23,6 +31,17 @@ for (i in 1:length(temp)){
   df.list[[file]] <-new
 }
 
+print(df.list)
+
+
+
+
+#######################################################
+
+
+
+
+#### BEST 4 RATERS #####
 
 ### Find ICC
 dfList1 <- lapply(df.list, function(df) {
@@ -45,8 +64,31 @@ dfList3 <- lapply(df.list, function(df) {
 
 
 
+### Output best 4 to csv ###
+completeList <- mapply(c, dfList1, dfList2, dfList3, SIMPLIFY=FALSE)
+completeList
 
-###### Best 3 raters
+completeList <- do.call(rbind, lapply(seq_along(completeList), function(i){
+  data.frame(CLUSTER=i, completeList[[i]])
+}))
+
+outname = paste("Rapport_AMT_IRR_", batch, "_All-4-raters.csv", sep="", collapse = NULL)
+write.table(as.data.frame(completeList),file=outname, col.names = NA, sep=",")
+
+
+
+
+
+
+
+
+
+
+
+#######################################################
+
+
+###### Best 3 raters ###### 
 
 
 krippList <- list()
@@ -124,45 +166,22 @@ for (amt in df.list){
 }
 
 
-
-
-
-
-
-
-
-### For Full IRR:
-completeList <- mapply(c, dfList1, dfList2, dfList3, SIMPLIFY=FALSE)
-
-completeList <- do.call(rbind, lapply(seq_along(completeList), function(i){
-  data.frame(CLUSTER=i, completeList[[i]])
-}))
-
-write.table(as.data.frame(completeList),file="Rapport_AMT_IRR_Batch#_All-4-raters.csv", col.names = NA, sep=",")
-
-
-
-
-## For 3 way KA and ICC:
+## Output 3 way KA and ICC to csv:
 # KA
-completeList_3way <- mapply(c, fileList, krippList, SIMPLIFY=FALSE)
-completeList_3way
-completeList_3way <- do.call(rbind, lapply(seq_along(completeList_3way), function(i){
-  data.frame(CLUSTER=i, completeList_3way[[i]])
-}))
 write.table(as.data.frame(krippList),file="Rapport_AMT_IRR_Batch5_best-3-raters_kripp.csv", col.names = NA, sep=",")
 
-
-
-
 # ICC
-completeList_3way <- mapply(c, fileList, iccList, SIMPLIFY=FALSE)
-completeList_3way <- do.call(rbind, lapply(seq_along(completeList_3way), function(i){
-  data.frame(CLUSTER=i, completeList_3way[[i]])
-}))
 write.table(as.data.frame(iccList),file="Rapport_AMT_IRR_Batch5_best-3-raters_ICC.csv", col.names = NA, sep=",")
 
 
+
+
+####
+#completeList_3way <- mapply(c, fileList, krippList, SIMPLIFY=FALSE)
+#completeList_3way
+#completeList_3way <- do.call(rbind, lapply(seq_along(completeList_3way), function(i){
+ # data.frame(CLUSTER=i, completeList_3way[[i]])
+#}))
 
 
 
