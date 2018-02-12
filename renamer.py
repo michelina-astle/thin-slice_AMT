@@ -1,7 +1,8 @@
 __author__ = 'mmadaio'
 
+import os
+from random import randint
 
-import os, math
 
 """
 Renames the filenames within the same directory
@@ -10,10 +11,23 @@ Usage:
 python rename.py
 """
 
-rootdir =  "Slice_Folder"
-filenames = os.listdir(path)
+rootdir =  "Slices"
+#filenames = os.listdir(path)
 
 
 for root, subFolders, files in os.walk(rootdir):
-        if '.mp4' in files:
-            os.rename(filename, filename.replace("P", "{0}_P".format(math.random())))
+	#print root
+	#print subFolders
+	#print files
+    for subfolder in subFolders:
+    	
+    	filepath = root + "\\" + subfolder + "\\"
+    	print filepath
+    	for filename in os.listdir(filepath):
+
+    		print filename
+	    	if '.mp4' in filename:
+				pathAndFile = filepath + filename
+				print pathAndFile
+				os.rename(pathAndFile, filename.replace("P", "{0}_P".format(randint(0,75))))
+				print filename
